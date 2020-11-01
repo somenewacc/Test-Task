@@ -87,18 +87,18 @@ void* threadFunc(void* thread_data)
                     if (datatmptail & 1)
                         ones += 1;
                     datatmptail = datatmptail >> 1;
-                    lasttail = tail;
-                    tail     = tail->next;
-                    if (counthead < counttail)
-                    {
-                        sumones   += ones;
-                        counttail  = counttail - 1;
-                    }
-                    else
-                    {
-                        headend = true;
-                        tailend = true;
-                    }
+		}
+                lasttail = tail;
+                tail     = tail->next;
+                if (counthead < counttail)
+                {
+                    sumones   += ones;
+                    counttail  = counttail - 1;
+                }
+                else
+                {
+                    headend = true;
+                    tailend = true;
                 }
             }
             // Разблокируем часть кода
