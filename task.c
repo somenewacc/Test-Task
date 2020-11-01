@@ -224,7 +224,6 @@ int main()
         append(&head, rand() % 100 + 1);
     }
 
-    
     // Вызов функции печати списка в консоль
     // printList(head);
 
