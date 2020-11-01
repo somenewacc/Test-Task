@@ -15,10 +15,12 @@ typedef enum {false, true} bool;
 
 // Создаём структуру для двусвязного списка
 struct Node { 
-    int data;          // Информация в узле
+    int data; // Информация в узле
     struct Node* next; // Указатель на следующий узел списка
     struct Node* prev; // Указатель на предыдущий узел списка
 };
+
+pthread_mutex_t mutex;
 
 // Инициализируем списки
 struct Node* head = NULL;
@@ -38,89 +40,75 @@ int sumzeros = 0, sumones = 0;
 void* threadFunc(void* thread_data) 
 {
     pthrData *data = (pthrData*) thread_data;
-    // Проверка потока
-    if (data->check == true)
+    int zeros = 0;
+    int ones  = 0;
+    struct Node *last;
+    struct Node *lasttail;
+    while ((head != NULL && headend != true) || (tail != NULL && tailend != true))
     {
-        int zeros = 0;
-        struct Node *last;
-        while (head != NULL && headend != true)
+        if (counthead >= counttail)
         {
-            usleep(1);
-            if ((counthead >= counttail) && (counthead != 0))
+            headend = true;
+            tailend = true;
+        }
+        else
+        {
+            zeros = 0;
+            ones  = 0;
+            // Блокируем часть кода
+            pthread_mutex_lock(&mutex);
+            if (data->check == true)
             {
-                headend = true;
-                tailend = true;
-            }
-            else
-            {
-                zeros = 0;
                 int datatmp = head->data;
-                // Подсчёт нулей в узле списка
                 while (datatmp > 0)
                 {
                     if (~(datatmp) & 1)
                         zeros += 1;
                     datatmp = datatmp >> 1;
                 }
-                // Переход к следующему узлу
                 last = head;
                 head = head->next;
-                if (headend != true && tailend != true)
+                if (counthead < counttail)
                 {
                     sumzeros  += zeros;
                     counthead  = counthead + 1;
                 }
-            }
-        }
-        if (counttail == 0 && counthead > 0)
-        {
-            counthead = 0;
-            sumzeros  = 0;
-        }
-    }
-    else if (data->check == false)
-    {
-        int ones = 0;
-        struct Node *lasttail;
-        while (tail != NULL && tailend != true)
-        {
-            usleep(1);
-            if ((counthead >= counttail) && (counttail != 0))
-            {
-                headend = true;
-                tailend = true;
+                else
+                {
+                    headend = true;
+                    tailend = true;
+                }
             }
             else
             {
-                ones = 0;
                 int datatmptail = tail->data;
-                // Подсчёт единиц в узле списка
                 while (datatmptail > 0)
                 {
                     if (datatmptail & 1)
                         ones += 1;
                     datatmptail = datatmptail >> 1;
+                    lasttail = tail;
+                    tail     = tail->next;
+                    if (counthead < counttail)
+                    {
+                        sumones   += ones;
+                        counttail  = counttail - 1;
+                    }
+                    else
+                    {
+                        headend = true;
+                        tailend = true;
+                    }
                 }
-                // Переход к следующему узлу
-                lasttail = tail;
-                tail     = tail->next;
-                if (headend != true && tailend != true)
-                {
-                    sumones   += ones;
-                    counttail  = counttail - 1;
-                }   
             }
-        }
-        if (counthead == N && counttail < N)
-        {
-            counttail  = 0;
-            sumones    = 0;
+            // Разблокируем часть кода
+            pthread_mutex_unlock(&mutex);
         }
     }
     pthread_exit(0);
 }
 
-// Функция для добавления узла в начало списка
+// Функция для добавление узла в начало списка
 void push(struct Node** head_ref, int new_data)
 {
     // Создаём новый узел
@@ -224,11 +212,15 @@ int main()
         append(&head, rand() % 100 + 1);
     }
 
+    
     // Вызов функции печати списка в консоль
     // printList(head);
+    
 
     // Реверсивно копируем список. Это необходимо для того, чтобы в потоках не было лишнего перекоса
     copyrevnode(head);
+
+    pthread_mutex_init (&mutex, NULL);
     
     // Запускаем потоки
     pthread_create(&threadhead, NULL, threadFunc, &threadDataHead);
