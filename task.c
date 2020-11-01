@@ -120,7 +120,7 @@ void* threadFunc(void* thread_data)
     pthread_exit(0);
 }
 
-// Функция для добавление узла в начало списка
+// Функция для добавления узла в начало списка
 void push(struct Node** head_ref, int new_data)
 {
     // Создаём новый узел
