@@ -8,7 +8,7 @@
 #include <time.h>
 
 // Количество элементов в списке
-#define N 1000
+#define N 10000
 
 // Создаём булевые переменные для удобства
 typedef enum {false, true} bool;
