@@ -53,12 +53,11 @@ void* threadFunc(void* thread_data)
         }
         else
         {
-            zeros = 0;
-            ones  = 0;
             // Блокируем часть кода
             pthread_mutex_lock(&mutex);
             if (data->check == true)
             {
+		zeros = 0;
                 int datatmp = head->data;
                 while (datatmp > 0)
                 {
@@ -81,6 +80,7 @@ void* threadFunc(void* thread_data)
             }
             else
             {
+		ones = 0;
                 int datatmptail = tail->data;
                 while (datatmptail > 0)
                 {
