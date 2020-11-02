@@ -65,6 +65,7 @@ void* threadFunc(void* thread_data)
                 }
                 last = head;
                 head = head->next;
+                free(last);
                 pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
@@ -90,6 +91,7 @@ void* threadFunc(void* thread_data)
                 }
                 lasttail = tail;
                 tail     = tail->next;
+                free(lasttail);
                 pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
