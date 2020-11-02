@@ -53,8 +53,6 @@ void* threadFunc(void* thread_data)
         }
         else
         {
-            // Блокируем часть кода
-            pthread_mutex_lock(&mutex);
             if (data->check == true)
             {
                 zeros = 0;
@@ -67,6 +65,7 @@ void* threadFunc(void* thread_data)
                 }
                 last = head;
                 head = head->next;
+                pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
                     sumzeros  += zeros;
@@ -77,6 +76,7 @@ void* threadFunc(void* thread_data)
                     headend = true;
                     tailend = true;
                 }
+                pthread_mutex_unlock(&mutex);
             }
             else
             {
@@ -90,6 +90,7 @@ void* threadFunc(void* thread_data)
                 }
                 lasttail = tail;
                 tail     = tail->next;
+                pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
                     sumones   += ones;
@@ -100,9 +101,8 @@ void* threadFunc(void* thread_data)
                     headend = true;
                     tailend = true;
                 }
+                pthread_mutex_unlock(&mutex);
             }
-            // Разблокируем часть кода
-            pthread_mutex_unlock(&mutex);
         }
     }
     pthread_exit(0);
