@@ -63,12 +63,12 @@ void* threadFunc(void* thread_data)
                         zeros += 1;
                     datatmp = datatmp >> 1;
                 }
-                last = head;
-                head = head->next;
-                free(last);
                 pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
+                    last = head;
+                    head = head->next;
+                    free(last);
                     sumzeros  += zeros;
                     counthead  = counthead + 1;
                 }
@@ -89,12 +89,12 @@ void* threadFunc(void* thread_data)
                         ones += 1;
                     datatmptail = datatmptail >> 1;
                 }
-                lasttail = tail;
-                tail     = tail->next;
-                free(lasttail);
                 pthread_mutex_lock(&mutex);
                 if (counthead < counttail)
                 {
+                    lasttail = tail;
+                    tail     = tail->prev;
+                    free(lasttail);
                     sumones   += ones;
                     counttail  = counttail - 1;
                 }
@@ -180,18 +180,6 @@ void printList(struct Node *node)
     printf("\n");
 }
 
-// Функция для реверсивного копирования списка
-void copyrevnode(struct Node *node)
-{
-    struct Node *last;
-    while (node != NULL)
-    {
-        push(&tail, node->data);
-        last = node;
-        node = node->next;
-    }
-}
-
 int main()
 {
     pthrData threadDataHead;
@@ -217,8 +205,11 @@ int main()
     // Вызов функции печати списка в консоль
     // printList(head);
 
-    // Реверсивно копируем список. Это необходимо для того, чтобы в потоках не было лишнего перекоса
-    copyrevnode(head);
+    tail = head;
+    for (int i = 0; i < N-1; i++)
+    {
+        tail = tail->next;
+    }
 
     pthread_mutex_init (&mutex, NULL);
     
