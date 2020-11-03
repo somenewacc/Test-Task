@@ -107,6 +107,7 @@ void* threadFunc(void* thread_data)
             }
         }
     }
+    head = NULL;
     pthread_exit(0);
 }
 
