@@ -1,5 +1,7 @@
-// S-Terra test task
+// Test Task
 // Author: Bezborodov G.A.
+// This implementation isn't good.
+// It might be rewritten someday.
 
 #include <stdio.h>
 #include <unistd.h>
