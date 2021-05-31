@@ -1,7 +1,5 @@
 // Test Task
 // Author: Bezborodov G.A.
-// This implementation isn't good.
-// It might be rewritten someday.
 
 #include <stdio.h>
 #include <unistd.h>
@@ -35,79 +33,56 @@ typedef struct{
 
 // Инициализируем глобальные переменные
 int counthead = 0, counttail = N;
-bool headend = false, tailend = false;
-int sumzeros = 0, sumones = 0;
+bool thread_end = false;
+int zeros_sum = 0, ones_sum = 0;
 
 // Функция потока
 void* threadFunc(void* thread_data) 
 {
     pthrData *data = (pthrData*) thread_data;
-    int zeros = 0;
-    int ones  = 0;
+    int bits = 0;
     struct Node *last;
     struct Node *lasttail;
-    while ((head != NULL && headend != true) || (tail != NULL && tailend != true))
+    while (!thread_end)
     {
+        pthread_mutex_lock(&mutex);
         if (counthead >= counttail)
         {
-            headend = true;
-            tailend = true;
+            thread_end = true;
         }
         else
         {
-            if (data->check == true)
+            bits = 0;
+            int datatmp = data->check ? head->data : tail->data;
+            while (datatmp > 0)
             {
-                zeros = 0;
-                int datatmp = head->data;
-                while (datatmp > 0)
-                {
-                    if (~(datatmp) & 1)
-                        zeros += 1;
-                    datatmp = datatmp >> 1;
-                }
-                pthread_mutex_lock(&mutex);
-                if (counthead < counttail)
-                {
-                    last = head;
+                if ((~(datatmp) & 1) && data->check)
+                    bits += 1;
+                else if ((datatmp & 1) && !data->check)
+                    bits += 1;
+                datatmp = datatmp >> 1;
+            }
+            if (counthead < counttail)
+            {
+                last = data->check ? head : tail;
+                if (data->check){
+                    zeros_sum += bits;
                     head = head->next;
-                    free(last);
-                    sumzeros  += zeros;
                     counthead  = counthead + 1;
                 }
-                else
-                {
-                    headend = true;
-                    tailend = true;
+                else{
+                    ones_sum += bits;
+                    tail = tail->prev;
+                    counttail  = counttail - 1;
                 }
-                pthread_mutex_unlock(&mutex);
+                free(last);
             }
             else
             {
-                ones = 0;
-                int datatmptail = tail->data;
-                while (datatmptail > 0)
-                {
-                    if (datatmptail & 1)
-                        ones += 1;
-                    datatmptail = datatmptail >> 1;
-                }
-                pthread_mutex_lock(&mutex);
-                if (counthead < counttail)
-                {
-                    lasttail = tail;
-                    tail     = tail->prev;
-                    free(lasttail);
-                    sumones   += ones;
-                    counttail  = counttail - 1;
-                }
-                else
-                {
-                    headend = true;
-                    tailend = true;
-                }
-                pthread_mutex_unlock(&mutex);
+                thread_end = true;
             }
         }
+        pthread_mutex_unlock(&mutex);
     }
     head = NULL;
     pthread_exit(0);
@@ -225,8 +200,8 @@ int main()
     pthread_join(threadtail, NULL);
 
     // Вывод подсчётов на экран
-    printf("Zeros from head: %d\nNumber of elements from head: %d\n", sumzeros, counthead);
-    printf("Ones from tail: %d\nNumber of elements from tail: %d\n", sumones, N - counttail);
+    printf("Zeros from head: %d\nNumber of elements from head: %d\n", zeros_sum, counthead);
+    printf("Ones from tail: %d\nNumber of elements from tail: %d\n", ones_sum, N - counttail);
 
     return 0;
 }
